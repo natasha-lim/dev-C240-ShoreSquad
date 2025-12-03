@@ -724,6 +724,81 @@ class ShoreSquadApp {
         alert('Learn More:\n\nShoreSquad connects young environmental advocates to organize beach cleanups. Use weather data and maps to plan perfect cleanup days, coordinate with your crew, and make a real impact on ocean conservation.\n\nEvery piece of trash removed helps protect marine life and keeps our beaches beautiful for future generations.');
     }
     
+    // Map Interaction Functions
+    openInGoogleMaps() {
+        const lat = 1.381497;
+        const lng = 103.955574;
+        const location = "Pasir Ris Beach, Singapore";
+        
+        // Create Google Maps URL with directions
+        const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=${encodeURIComponent(location)}`;
+        
+        // Open in new tab/window
+        window.open(mapsUrl, '_blank', 'noopener,noreferrer');
+        
+        // Show confirmation
+        this.showNotification('🗺️ Opening directions to Pasir Ris Beach...', 'info');
+    }
+    
+    shareLocation() {
+        const lat = 1.381497;
+        const lng = 103.955574;
+        const locationName = "Pasir Ris Beach Cleanup";
+        const shareText = `🌊 Join us for a beach cleanup at ${locationName}!\n\n📍 Location: ${lat}, ${lng}\n🗓️ Date: December 15, 2025\n⏰ Time: 8:00 AM - 11:00 AM\n\nLet's make waves for ocean conservation! 🏄‍♂️`;
+        
+        // Check if Web Share API is supported
+        if (navigator.share) {
+            navigator.share({
+                title: 'ShoreSquad Beach Cleanup',
+                text: shareText,
+                url: `https://www.google.com/maps?q=${lat},${lng}`
+            }).then(() => {
+                this.showNotification('📤 Location shared successfully!', 'success');
+            }).catch((error) => {
+                console.log('Share failed:', error);
+                this.fallbackShare(shareText, lat, lng);
+            });
+        } else {
+            // Fallback for browsers without Web Share API
+            this.fallbackShare(shareText, lat, lng);
+        }
+    }
+    
+    fallbackShare(shareText, lat, lng) {
+        // Copy to clipboard as fallback
+        if (navigator.clipboard) {
+            const fullText = `${shareText}\n\nGoogle Maps: https://www.google.com/maps?q=${lat},${lng}`;
+            
+            navigator.clipboard.writeText(fullText).then(() => {
+                this.showNotification('📋 Location details copied to clipboard!', 'success');
+            }).catch(() => {
+                this.showShareModal(shareText, lat, lng);
+            });
+        } else {
+            this.showShareModal(shareText, lat, lng);
+        }
+    }
+    
+    showShareModal(shareText, lat, lng) {
+        const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+        const message = `${shareText}\n\nGoogle Maps: ${mapsUrl}`;
+        
+        // Simple modal replacement
+        const userChoice = confirm(`Share this cleanup location?\n\n${message}\n\nClick OK to copy to clipboard or Cancel to close.`);
+        
+        if (userChoice) {
+            // Manual copy fallback
+            const textArea = document.createElement('textarea');
+            textArea.value = message;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            this.showNotification('📋 Location copied to clipboard!', 'success');
+        }
+    }
+    
     // Utility Functions
     showLoading(message = 'Loading...') {
         this.state.isLoading = true;
@@ -877,6 +952,37 @@ window.addEventListener('beforeinstallprompt', (e) => {
     // Update UI to notify the user they can install the PWA
     console.log('PWA installation available');
 });
+
+// Global functions for map interactions (accessible from HTML)
+function openInGoogleMaps() {
+    if (window.shoreSquadApp) {
+        window.shoreSquadApp.openInGoogleMaps();
+    } else {
+        // Fallback if app isn't loaded yet
+        const lat = 1.381497;
+        const lng = 103.955574;
+        const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+        window.open(mapsUrl, '_blank', 'noopener,noreferrer');
+    }
+}
+
+function shareLocation() {
+    if (window.shoreSquadApp) {
+        window.shoreSquadApp.shareLocation();
+    } else {
+        // Fallback if app isn't loaded yet
+        const lat = 1.381497;
+        const lng = 103.955574;
+        const shareText = `🌊 Join us for a beach cleanup at Pasir Ris Beach!\n\n📍 Location: ${lat}, ${lng}\n🗓️ Date: December 15, 2025\n⏰ Time: 8:00 AM - 11:00 AM`;
+        
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(`${shareText}\n\nGoogle Maps: https://www.google.com/maps?q=${lat},${lng}`);
+            alert('Location details copied to clipboard!');
+        } else {
+            alert(shareText);
+        }
+    }
+}
 
 // Initialize Application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
