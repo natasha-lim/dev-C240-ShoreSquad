@@ -16,11 +16,13 @@ class ShoreSquadApp {
         };
         
         this.config = {
-            weatherApiKey: 'your_openweather_api_key_here', // Replace with actual API key
+            neaApiBase: 'https://api.data.gov.sg/v1/environment',
             mapsApiKey: 'your_google_maps_api_key_here', // Replace with actual API key
             geolocationTimeout: 10000,
             weatherUpdateInterval: 300000, // 5 minutes
-            storageKey: 'shoresquad_data'
+            storageKey: 'shoresquad_data',
+            // Pasir Ris area coordinates for weather data
+            pasirRisCoords: { lat: 1.381497, lng: 103.955574 }
         };
         
         this.init();
@@ -225,11 +227,11 @@ class ShoreSquadApp {
             
         } catch (error) {
             console.warn('Geolocation error:', error);
-            // Use default location (Santa Monica, CA)
+            // Use default location (Singapore - Pasir Ris area)
             this.state.location = {
-                lat: 34.0195,
-                lng: -118.4912,
-                name: 'Santa Monica, CA'
+                lat: 1.381497,
+                lng: 103.955574,
+                name: 'Singapore'
             };
             this.updateLocationDisplay();
         }
@@ -300,56 +302,176 @@ class ShoreSquadApp {
         }
     }
     
-    // Fetch Weather Data (Mock Implementation)
+    // Fetch Weather Data from NEA APIs
     async fetchWeatherData() {
-        // Mock weather data for demonstration
-        // In production, replace with actual API call
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve({
-                    temperature: 72,
-                    feelsLike: 75,
-                    description: 'sunny',
-                    humidity: 65,
-                    windSpeed: 8.5,
-                    uvIndex: 6,
-                    icon: 'sun',
-                    conditions: 'perfect' // good, okay, poor
-                });
-            }, 1000);
-        });
-        
-        // Actual API implementation would look like:
-        /*
-        const response = await fetch(
-            `https://api.openweathermap.org/data/2.5/weather?lat=${this.state.location.lat}&lon=${this.state.location.lng}&appid=${this.config.weatherApiKey}&units=imperial`
-        );
-        
-        if (!response.ok) throw new Error('Weather API request failed');
-        
-        const data = await response.json();
-        return this.parseWeatherData(data);
-        */
+        try {
+            // Fetch multiple weather parameters from NEA APIs
+            const [tempData, humidityData, windSpeedData, windDirData, uvData, forecast24h, forecast4d] = await Promise.all([
+                this.fetchNEAData('air-temperature'),
+                this.fetchNEAData('relative-humidity'), 
+                this.fetchNEAData('wind-speed'),
+                this.fetchNEAData('wind-direction'),
+                this.fetchNEAData('uv-index'),
+                this.fetchNEAData('24-hour-weather-forecast'),
+                this.fetchNEAData('4-day-weather-forecast')
+            ]);
+            
+            // Find closest station data to Pasir Ris
+            const temperature = this.getClosestStationData(tempData, 'temperature');
+            const humidity = this.getClosestStationData(humidityData, 'humidity');
+            const windSpeed = this.getClosestStationData(windSpeedData, 'wind_speed');
+            const windDirection = this.getClosestStationData(windDirData, 'wind_direction');
+            const uvIndex = this.getUVIndex(uvData);
+            
+            // Process forecast data
+            const forecast = this.processForecastData(forecast24h, forecast4d);
+            
+            const weatherData = {
+                temperature: temperature || 28, // Fallback to typical Singapore temp
+                feelsLike: temperature ? temperature + 2 : 30, // Estimated feels like
+                description: forecast.current?.forecast || 'Partly Cloudy',
+                humidity: humidity || 75,
+                windSpeed: windSpeed ? (windSpeed * 1.852).toFixed(1) : 15, // Convert knots to km/h
+                windDirection: windDirection || 180,
+                uvIndex: uvIndex || 6,
+                icon: this.getWeatherIcon(forecast.current?.forecast || 'partly cloudy'),
+                conditions: this.getCleanupConditions(temperature, windSpeed, forecast.current?.forecast),
+                forecast: forecast,
+                lastUpdated: new Date().toISOString()
+            };
+            
+            return weatherData;
+            
+        } catch (error) {
+            console.warn('NEA API fetch failed, using fallback data:', error);
+            return this.getFallbackWeatherData();
+        }
     }
     
-    // Load Mock Weather Data
-    loadMockWeatherData() {
-        this.state.weather = {
-            temperature: 72,
-            feelsLike: 75,
-            description: 'sunny',
-            humidity: 65,
-            windSpeed: 8.5,
-            uvIndex: 6,
-            icon: 'sun',
-            conditions: 'perfect'
+    // Fetch data from NEA API endpoints
+    async fetchNEAData(endpoint) {
+        try {
+            const response = await fetch(`${this.config.neaApiBase}/${endpoint}`);
+            if (!response.ok) throw new Error(`NEA API ${endpoint} failed`);
+            
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.warn(`Failed to fetch ${endpoint}:`, error);
+            return null;
+        }
+    }
+    
+    // Get closest weather station data to Pasir Ris
+    getClosestStationData(data, valueKey) {
+        if (!data?.items?.length) return null;
+        
+        const latestReading = data.items[0];
+        if (!latestReading?.readings?.length) return null;
+        
+        // For now, use first available reading (could be enhanced with distance calculation)
+        const reading = latestReading.readings[0];
+        return reading?.[valueKey];
+    }
+    
+    // Get UV Index from NEA data
+    getUVIndex(data) {
+        if (!data?.items?.length) return null;
+        
+        const latestReading = data.items[0];
+        return latestReading?.index?.[0]?.value;
+    }
+    
+    // Process forecast data from NEA APIs
+    processForecastData(forecast24h, forecast4d) {
+        const processed = {
+            current: null,
+            today: null,
+            extended: []
         };
         
-        this.updateWeatherDisplay();
-        this.updateCleanupRecommendation();
+        // Process 24-hour forecast
+        if (forecast24h?.items?.length) {
+            const forecast24 = forecast24h.items[0];
+            processed.current = {
+                forecast: forecast24.general?.forecast,
+                temperature: {
+                    low: forecast24.general?.temperature?.low,
+                    high: forecast24.general?.temperature?.high
+                },
+                humidity: {
+                    low: forecast24.general?.relative_humidity?.low,
+                    high: forecast24.general?.relative_humidity?.high
+                },
+                wind: forecast24.general?.wind
+            };
+        }
+        
+        // Process 4-day forecast
+        if (forecast4d?.items?.length) {
+            const forecast4 = forecast4d.items[0];
+            processed.extended = forecast4.forecasts || [];
+        }
+        
+        return processed;
     }
     
-    // Update Weather Display
+    // Get weather icon based on forecast description
+    getWeatherIcon(description) {
+        const desc = description.toLowerCase();
+        
+        if (desc.includes('rain') || desc.includes('shower')) return 'rain';
+        if (desc.includes('cloud') || desc.includes('overcast')) return 'cloud';
+        if (desc.includes('thunder') || desc.includes('storm')) return 'storm';
+        if (desc.includes('sun') || desc.includes('fair') || desc.includes('clear')) return 'sun';
+        
+        return 'cloud'; // Default to cloudy
+    }
+    
+    // Determine cleanup conditions based on weather
+    getCleanupConditions(temp, windSpeed, forecast) {
+        if (!temp && !windSpeed && !forecast) return 'okay';
+        
+        const desc = forecast ? forecast.toLowerCase() : '';
+        
+        // Poor conditions
+        if (desc.includes('thunder') || desc.includes('heavy rain') || 
+            (windSpeed && windSpeed > 15) || (temp && temp > 35)) {
+            return 'poor';
+        }
+        
+        // Good conditions  
+        if ((temp && temp >= 24 && temp <= 32) && 
+            (!windSpeed || windSpeed <= 10) &&
+            !desc.includes('rain')) {
+            return 'perfect';
+        }
+        
+        return 'good'; // Default to good
+    }
+    
+    // Fallback weather data when APIs fail
+    getFallbackWeatherData() {
+        return {
+            temperature: 28,
+            feelsLike: 31,
+            description: 'Partly Cloudy',
+            humidity: 75,
+            windSpeed: 12,
+            windDirection: 180,
+            uvIndex: 6,
+            icon: 'cloud',
+            conditions: 'good',
+            forecast: {
+                current: { forecast: 'Partly Cloudy' },
+                extended: []
+            },
+            lastUpdated: new Date().toISOString(),
+            isOffline: true
+        };
+    }
+    
+    // Update Weather Display with NEA data
     updateWeatherDisplay() {
         const weather = this.state.weather;
         if (!weather) return;
@@ -357,25 +479,26 @@ class ShoreSquadApp {
         // Temperature
         const tempElement = document.getElementById('current-temp');
         if (tempElement) {
-            tempElement.textContent = `${Math.round(weather.temperature)}°F`;
+            tempElement.textContent = `${Math.round(weather.temperature)}°C`;
         }
         
         // Feels like
         const feelsLikeElement = document.getElementById('feels-like');
         if (feelsLikeElement) {
-            feelsLikeElement.textContent = `${Math.round(weather.feelsLike)}°F`;
+            feelsLikeElement.textContent = `${Math.round(weather.feelsLike)}°C`;
         }
         
         // Description
         const descriptionElement = document.getElementById('weather-description');
         if (descriptionElement) {
-            descriptionElement.textContent = weather.description.charAt(0).toUpperCase() + weather.description.slice(1);
+            const desc = weather.description.charAt(0).toUpperCase() + weather.description.slice(1);
+            descriptionElement.textContent = weather.isOffline ? `${desc} (Offline)` : desc;
         }
         
         // Wind speed
         const windElement = document.getElementById('wind-speed');
         if (windElement) {
-            windElement.textContent = `${weather.windSpeed} mph`;
+            windElement.textContent = `${weather.windSpeed} km/h`;
         }
         
         // Humidity
@@ -390,8 +513,91 @@ class ShoreSquadApp {
             uvElement.textContent = weather.uvIndex;
         }
         
-        // Weather icon (could be enhanced with actual weather icons)
+        // Weather icon
         this.updateWeatherIcon(weather.icon);
+        
+        // Update forecast if available
+        if (weather.forecast) {
+            this.updateForecastDisplay(weather.forecast);
+        }
+        
+        // Add data source indicator
+        this.updateDataSource(weather.isOffline);
+        
+        // Update hero weather card
+        this.updateHeroWeather(weather);
+    }
+    
+    // Update hero section weather card
+    updateHeroWeather(weather) {
+        const heroTempElement = document.getElementById('hero-temp');
+        const heroConditionElement = document.getElementById('hero-condition');
+        
+        if (heroTempElement) {
+            heroTempElement.textContent = `${Math.round(weather.temperature)}°C`;
+        }
+        
+        if (heroConditionElement) {
+            const condition = weather.conditions === 'perfect' ? 'Perfect for cleanup!' :
+                            weather.conditions === 'good' ? 'Great for cleanup!' :
+                            weather.conditions === 'okay' ? 'Okay conditions' :
+                            'Check conditions';
+            heroConditionElement.textContent = condition;
+        }
+    }
+    
+    // Update forecast display
+    updateForecastDisplay(forecast) {
+        const forecastContainer = document.getElementById('weather-forecast');
+        if (!forecastContainer) return;
+        
+        let forecastHTML = '';
+        
+        // Show 4-day forecast if available
+        if (forecast.extended && forecast.extended.length > 0) {
+            forecastHTML = `
+                <div class="forecast-section">
+                    <h4 class="forecast-title">7-Day Forecast</h4>
+                    <div class="forecast-grid">
+            `;
+            
+            forecast.extended.slice(0, 7).forEach((day, index) => {
+                const date = new Date();
+                date.setDate(date.getDate() + index);
+                const dayName = index === 0 ? 'Today' : date.toLocaleDateString('en-SG', { weekday: 'short' });
+                
+                const icon = this.getWeatherIcon(day.forecast || 'partly cloudy');
+                const iconSvg = this.getIconSvg(icon);
+                
+                forecastHTML += `
+                    <div class="forecast-day">
+                        <div class="forecast-date">${dayName}</div>
+                        <div class="forecast-icon">${iconSvg}</div>
+                        <div class="forecast-temp">
+                            <span class="temp-high">${day.temperature?.high || '--'}°</span>
+                            <span class="temp-low">${day.temperature?.low || '--'}°</span>
+                        </div>
+                        <div class="forecast-desc">${day.forecast || 'N/A'}</div>
+                    </div>
+                `;
+            });
+            
+            forecastHTML += `
+                    </div>
+                </div>
+            `;
+        }
+        
+        forecastContainer.innerHTML = forecastHTML;
+    }
+    
+    // Add data source indicator
+    updateDataSource(isOffline) {
+        const locationElement = document.getElementById('current-location');
+        if (locationElement && this.state.location?.name) {
+            const source = isOffline ? ' (Offline)' : ' (NEA Live Data)';
+            locationElement.textContent = this.state.location.name + source;
+        }
     }
     
     // Update Weather Icon
@@ -399,7 +605,11 @@ class ShoreSquadApp {
         const iconElement = document.getElementById('weather-icon');
         if (!iconElement) return;
         
-        // Simple icon mapping - could be enhanced with actual weather icon library
+        iconElement.innerHTML = this.getIconSvg(iconType);
+    }
+    
+    // Get SVG icon for weather type
+    getIconSvg(iconType) {
         const iconMap = {
             sun: `<svg viewBox="0 0 24 24" fill="currentColor">
                 <circle cx="12" cy="12" r="5"/>
@@ -420,10 +630,14 @@ class ShoreSquadApp {
                 <line x1="8" y1="21" x2="8" y2="19"/>
                 <line x1="16" y1="21" x2="16" y2="19"/>
                 <line x1="12" y1="23" x2="12" y2="21"/>
+            </svg>`,
+            storm: `<svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
+                <path d="M13 2l-1.5 6L15 10l-3 8 1.5-6L9 10l4-8z" stroke="#FFD700" stroke-width="1" fill="#FFD700"/>
             </svg>`
         };
         
-        iconElement.innerHTML = iconMap[iconType] || iconMap.sun;
+        return iconMap[iconType] || iconMap.cloud;
     }
     
     // Update Cleanup Recommendation

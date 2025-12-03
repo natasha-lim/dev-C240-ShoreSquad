@@ -122,8 +122,8 @@
                     <div class="hero-image">
                         <div class="floating-card weather-card">
                             <div class="card-content">
-                                <span class="weather-temp">72°F</span>
-                                <span class="weather-condition">Perfect for cleanup!</span>
+                                <span class="weather-temp" id="hero-temp">28°C</span>
+                                <span class="weather-condition" id="hero-condition">Live Singapore Weather</span>
                             </div>
                         </div>
                         
@@ -220,7 +220,7 @@
                         <div class="weather-metrics">
                             <div class="metric">
                                 <span class="metric-label">Wind</span>
-                                <span class="metric-value" id="wind-speed">-- mph</span>
+                                <span class="metric-value" id="wind-speed">-- km/h</span>
                             </div>
                             <div class="metric">
                                 <span class="metric-label">Humidity</span>
@@ -237,6 +237,11 @@
                                 <span class="indicator-dot"></span>
                                 <span class="indicator-text">Perfect for beach cleanup!</span>
                             </div>
+                        </div>
+                        
+                        <!-- 7-Day Weather Forecast -->
+                        <div class="weather-forecast" id="weather-forecast">
+                            <!-- Forecast will be loaded dynamically -->
                         </div>
                     </div>
                 </div>
