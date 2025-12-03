@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ShoreSquad - Rally your crew, track weather, and hit the next beach cleanup with our dope map app!">
+    <meta name="keywords" content="beach cleanup, environment, weather, maps, social, eco-friendly, ocean conservation">
+    <meta name="author" content="ShoreSquad Team">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://shoresquad.app">
+    <meta property="og:title" content="ShoreSquad - Beach Cleanup Crew App">
+    <meta property="og:description" content="Rally your crew, track weather, and hit the next beach cleanup with our dope map app!">
+    <meta property="og:image" content="./images/og-image.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://shoresquad.app">
+    <meta property="twitter:title" content="ShoreSquad - Beach Cleanup Crew App">
+    <meta property="twitter:description" content="Rally your crew, track weather, and hit the next beach cleanup with our dope map app!">
+    <meta property="twitter:image" content="./images/og-image.jpg">
+    
+    <!-- PWA -->
+    <meta name="theme-color" content="#0077BE">
+    <link rel="manifest" href="./manifest.json">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="./images/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="./images/apple-touch-icon.png">
+    
+    <!-- Preconnect to external resources -->
+    <link rel="preconnect" href="https://api.openweathermap.org">
+    <link rel="preconnect" href="https://maps.googleapis.com">
+    
+    <title>ShoreSquad - Beach Cleanup Crew App</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="./css/styles.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Skip to content for screen readers -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <!-- Header -->
+    <header class="header" role="banner">
+        <nav class="navbar" aria-label="Main navigation">
+            <div class="container">
+                <div class="nav-brand">
+                    <a href="#" class="logo" aria-label="ShoreSquad Home">
+                        <svg class="logo-icon" viewBox="0 0 40 40" aria-hidden="true">
+                            <circle cx="20" cy="20" r="18" fill="currentColor"/>
+                            <path d="M12 16l8 8 8-8" stroke="white" stroke-width="2" fill="none"/>
+                        </svg>
+                        <span class="logo-text">ShoreSquad</span>
+                    </a>
+                </div>
+                
+                <button class="nav-toggle" aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
+                    <span class="hamburger"></span>
+                    <span class="hamburger"></span>
+                    <span class="hamburger"></span>
+                </button>
+                
+                <ul class="nav-menu" id="nav-menu" role="menubar">
+                    <li role="none"><a href="#home" class="nav-link" role="menuitem">Home</a></li>
+                    <li role="none"><a href="#events" class="nav-link" role="menuitem">Events</a></li>
+                    <li role="none"><a href="#weather" class="nav-link" role="menuitem">Weather</a></li>
+                    <li role="none"><a href="#crew" class="nav-link" role="menuitem">My Crew</a></li>
+                    <li role="none"><a href="#profile" class="nav-link nav-link--cta" role="menuitem">Join Squad</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content" role="main">
+        <!-- Hero Section -->
+        <section class="hero" id="home">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 class="hero-title">
+                        Rally Your Crew, 
+                        <span class="accent-text">Clean the Shore!</span>
+                    </h1>
+                    <p class="hero-description">
+                        Track weather, find beach cleanups, and connect with your eco-squad. 
+                        Making ocean conservation social and accessible for young changemakers.
+                    </p>
+                    
+                    <div class="hero-actions">
+                        <button class="btn btn--primary" id="join-cleanup-btn">
+                            Find Beach Cleanup
+                        </button>
+                        <button class="btn btn--secondary" id="check-weather-btn">
+                            Check Weather
+                        </button>
+                    </div>
+                    
+                    <div class="hero-stats">
+                        <div class="stat">
+                            <span class="stat-number" data-count="1247">0</span>
+                            <span class="stat-label">Cleanups Completed</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number" data-count="8934">0</span>
+                            <span class="stat-label">Squad Members</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number" data-count="45.2">0</span>
+                            <span class="stat-label">Tons Collected</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="hero-visual">
+                    <div class="hero-image">
+                        <div class="floating-card weather-card">
+                            <div class="card-content">
+                                <span class="weather-temp">72°F</span>
+                                <span class="weather-condition">Perfect for cleanup!</span>
+                            </div>
+                        </div>
+                        
+                        <div class="floating-card crew-card">
+                            <div class="card-content">
+                                <span class="crew-count">12 Squad Members</span>
+                                <span class="crew-status">Ready to roll!</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features" id="features">
+            <div class="container">
+                <h2 class="section-title">How ShoreSquad Works</h2>
+                <p class="section-subtitle">Three simple steps to organize impactful beach cleanups</p>
+                
+                <div class="features-grid">
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">Find Nearby Beaches</h3>
+                        <p class="feature-description">Discover cleanup events and pristine beaches near you with our interactive map powered by real-time data.</p>
+                    </div>
+                    
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12.74 2.32a1 1 0 0 0-1.48 0l-4 4.38a1 1 0 0 0 0 1.36l4 4.38a1 1 0 0 0 1.48 0l4-4.38a1 1 0 0 0 0-1.36l-4-4.38zM12 9.46L9.26 6.7L12 4.04l2.74 2.66L12 9.46z"/>
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">Check Weather Conditions</h3>
+                        <p class="feature-description">Get accurate weather forecasts, tide information, and optimal cleanup conditions to plan your perfect beach day.</p>
+                    </div>
+                    
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H17c-.8 0-1.54.37-2.01.99l-2 2.66L9.33 10c-.74 0-1.42.4-1.78 1.04L6 14h2l1.56-2.28L12.4 16H8v2h12z"/>
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">Rally Your Squad</h3>
+                        <p class="feature-description">Connect with friends, join crews, and coordinate cleanup efforts. Make environmental action social and fun!</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Weather Widget Section -->
+        <section class="weather-section" id="weather">
+            <div class="container">
+                <h2 class="section-title">Beach Weather Conditions</h2>
+                <div class="weather-widget">
+                    <div class="weather-current">
+                        <div class="weather-location">
+                            <h3 id="current-location">Getting your location...</h3>
+                            <button class="location-btn" id="change-location" aria-label="Change location">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="weather-main">
+                            <div class="weather-temp-display">
+                                <span class="temp-current" id="current-temp">--°</span>
+                                <div class="weather-icon" id="weather-icon">
+                                    <svg viewBox="0 0 24 24" fill="currentColor">
+                                        <circle cx="12" cy="12" r="5"/>
+                                        <line x1="12" y1="1" x2="12" y2="3"/>
+                                        <line x1="12" y1="21" x2="12" y2="23"/>
+                                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                                        <line x1="1" y1="12" x2="3" y2="12"/>
+                                        <line x1="21" y1="12" x2="23" y2="12"/>
+                                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            
+                            <div class="weather-details">
+                                <p class="weather-description" id="weather-description">Sunny</p>
+                                <p class="weather-feels-like">Feels like <span id="feels-like">--°</span></p>
+                            </div>
+                        </div>
+                        
+                        <div class="weather-metrics">
+                            <div class="metric">
+                                <span class="metric-label">Wind</span>
+                                <span class="metric-value" id="wind-speed">-- mph</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Humidity</span>
+                                <span class="metric-value" id="humidity">--%</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">UV Index</span>
+                                <span class="metric-value" id="uv-index">--</span>
+                            </div>
+                        </div>
+                        
+                        <div class="cleanup-recommendation" id="cleanup-status">
+                            <div class="recommendation-indicator good">
+                                <span class="indicator-dot"></span>
+                                <span class="indicator-text">Perfect for beach cleanup!</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Events Section -->
+        <section class="events" id="events">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Upcoming Beach Cleanups</h2>
+                    <button class="btn btn--outline" id="create-event-btn">Create Event</button>
+                </div>
+                
+                <div class="events-list" id="events-list">
+                    <!-- Events will be loaded dynamically -->
+                    <div class="event-card">
+                        <div class="event-date">
+                            <span class="event-month">Dec</span>
+                            <span class="event-day">15</span>
+                        </div>
+                        <div class="event-content">
+                            <h3 class="event-title">Santa Monica Beach Cleanup</h3>
+                            <p class="event-location">Santa Monica Pier, CA</p>
+                            <div class="event-meta">
+                                <span class="event-time">9:00 AM - 12:00 PM</span>
+                                <span class="event-attendees">23 squad members going</span>
+                            </div>
+                        </div>
+                        <button class="btn btn--primary btn--small">Join</button>
+                    </div>
+                </div>
+                
+                <div class="events-map" id="events-map">
+                    <div class="map-placeholder">
+                        <p>Interactive map loading...</p>
+                        <svg viewBox="0 0 24 24" fill="currentColor" class="map-icon">
+                            <path d="M20.5,3l-0.16,0.03L15,5.1L9,3L3.36,4.9C3.15,4.97,3,5.15,3,5.38V20.5C3,20.78,3.22,21,3.5,21L3.66,20.97L9,18.9L15,21L20.64,19.1C20.85,19.03,21,18.85,21,18.62V3.5C21,3.22,20.78,3,20.5,3z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="cta">
+            <div class="container">
+                <div class="cta-content">
+                    <h2 class="cta-title">Ready to make waves?</h2>
+                    <p class="cta-description">
+                        Join thousands of young changemakers cleaning up our coastlines. 
+                        Every piece of trash removed makes a difference.
+                    </p>
+                    <div class="cta-actions">
+                        <button class="btn btn--primary btn--large" id="download-app-btn">
+                            Download ShoreSquad
+                        </button>
+                        <button class="btn btn--secondary btn--large" id="learn-more-btn">
+                            Learn More
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer" role="contentinfo">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="logo">
+                        <svg class="logo-icon" viewBox="0 0 40 40" aria-hidden="true">
+                            <circle cx="20" cy="20" r="18" fill="currentColor"/>
+                            <path d="M12 16l8 8 8-8" stroke="white" stroke-width="2" fill="none"/>
+                        </svg>
+                        <span class="logo-text">ShoreSquad</span>
+                    </div>
+                    <p class="footer-tagline">Making ocean conservation social and fun</p>
+                </div>
+                
+                <nav class="footer-nav" aria-label="Footer navigation">
+                    <div class="footer-links">
+                        <h3>Product</h3>
+                        <a href="#features">Features</a>
+                        <a href="#events">Beach Cleanups</a>
+                        <a href="#weather">Weather</a>
+                        <a href="#download">Download</a>
+                    </div>
+                    
+                    <div class="footer-links">
+                        <h3>Community</h3>
+                        <a href="#crew">Find Your Crew</a>
+                        <a href="#blog">Blog</a>
+                        <a href="#impact">Our Impact</a>
+                        <a href="#volunteer">Volunteer</a>
+                    </div>
+                    
+                    <div class="footer-links">
+                        <h3>Support</h3>
+                        <a href="#help">Help Center</a>
+                        <a href="#contact">Contact Us</a>
+                        <a href="#privacy">Privacy Policy</a>
+                        <a href="#terms">Terms of Service</a>
+                    </div>
+                </nav>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="copyright">&copy; 2025 ShoreSquad. All rights reserved.</p>
+                <div class="social-links">
+                    <a href="#" aria-label="Follow us on Instagram" class="social-link">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                        </svg>
+                    </a>
+                    <a href="#" aria-label="Follow us on TikTok" class="social-link">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 112.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-.88-.05A6.33 6.33 0 005 15.68a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.68z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay" aria-hidden="true">
+        <div class="loading-spinner">
+            <div class="wave"></div>
+            <div class="wave"></div>
+            <div class="wave"></div>
+        </div>
+        <p class="loading-text">Loading ShoreSquad...</p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="./js/app.js"></script>
+    
+    <!-- Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful');
+                    }, function(err) {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
